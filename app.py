@@ -1,17 +1,25 @@
 #!/usr/bin/env python3
 
 from flask import Flask, jsonify, abort, make_response, request
+from data import todos
+from models import Task
 from flask-sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-db = SQLAlchemy(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tasks.db'
+db = SQLAlchemy(app)
 
 app.app_context().push()
 db.create_all()
 
 
 
+for elem in todos:
+    task = Task(title=elem['todo'])
+    task.completed = elem['completed']
+    db.session.add(task)
+
+db.session.commit()
 # Harded coded data to simulate data in a database
 tasks = [
     {
