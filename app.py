@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
-from flask import Flask, jsonify, abort, make_response, request
+from flask import jsonify, abort, make_response, request
 from data import todos
-from models import Task
+from models import Task, db
 from flask-sqlalchemy import SQLAlchemy
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tasks.db'
-db = SQLAlchemy(app)
+# db = SQLAlchemy(app)
 
 app.app_context().push()
 db.create_all()

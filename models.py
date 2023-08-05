@@ -1,5 +1,7 @@
 
-from app import db
+from config import app
+
+db = SQLAlchemy(app)
 
 class Task(db.Model): # Model representing the task table in the database
     id = db.Column(db.Integer, primary_key=True) #Id (primary key) column
