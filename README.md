@@ -69,9 +69,9 @@ curl -X DELETE  http://localhost:5000/todo/api/v1.0/tasks/2
 
 # Challenges Experienced
 
-> One challenge that stood was getting the database to update immediately a command is run. This was not the case however. I had to stop the app from running and then kickstart it again to be able to fetch the updated data in the database.
+> One challenge that stood out was getting the database to update immediately a command is run. This was not the case however. I had to stop the app from running and then kickstart it again to be able to fetch the updated data in the database.
 
 # Contrubutors
-* Jacob Precious Chiemezie
+* Jacob Precious Chiemezie[click](https://github.com/Cheerio-ban/)
 
 
