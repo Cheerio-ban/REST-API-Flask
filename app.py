@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 from flask import jsonify, abort, make_response, request
-from data import todos
-from models import Task, db
+from data import quotes
+from models import Task, Quote, db
 from config import app
 # db = SQLAlchemy(app)
 
@@ -12,15 +12,17 @@ db.create_all()
 
 # Fetches all data from the database
 tasks = Task.query.all()
+quotes = Quote.query.all()
 
 @app.errorhandler(404)
 def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
 
 
+# todos
 # api format appname/api/version/folder/id
 @app.route("/todo/api/v1.0/tasks", methods= ["GET"])
-def home():
+def tasks_index():
     # Used this workaround because SQLalchemy class object can't be jsonified.
     task_list = []
     for task in tasks:
@@ -94,6 +96,79 @@ def delete_task(task_id):
     db.session.delete(task)
     db.session.commit()
     return jsonify({'result': True})
+
+
+
+# quotes 
+# api structure appname/api/version/folder/id
+@app.route("/motive/api/v1.0/quotes", methods= ["GET"])
+def quotes_index():
+    # Used this workaround because SQLalchemy class object can't be jsonified.
+    quote_list = []
+    for quote in quotes:
+        list_elem = {   'id': quote.id,
+                        'quote': quote.quote,
+                        'author': quote.author,
+                    }
+        quote_list.append(list_elem)
+    return jsonify({'quotes': quote_list})
+
+@app.route("/motive/api/v1.0/quotes/<int:quote_id>", methods = ["GET"])
+def get_quote(quote_id):
+    quote = Quote.query.filter_by(id=quote_id).first()
+    if not quote:
+        abort(404)
+    return jsonify({'quote': { 'id': quote.id,
+                            'quote': quote.quote,
+                            'author': quote.author,
+                             }})
+
+@app.route("/motive/api/v1.0/quotes", methods= ["POST"])
+def create_quote():
+    if not request.json or 'quote' not in request.json:
+        abort(400)
+    quote = Quote(quote=request.json['quote'])
+    quote.author= request.json.get('author', '')
+
+    db.session.add(quote)
+    db.session.commit()
+    return jsonify({'quote' : { 'id': quote.id,
+                            'quote': quote.quote,
+                            'author': quote.author,
+                             }
+                    }), 201
+
+
+@app.route("/motive/api/v1.0/quotes/<int:quote_id>", methods = ["PUT"])
+def update_quote(quote_id):
+    if not request.json:
+        abort(400)
+    quote = Quote.query.filter_by(id = quote_id).first()
+    if not quote:
+        abort(400)
+    if 'quote' in request.json and type(request.json['quote']) != str:
+        abort(400)
+    if 'author' in request.json and type(request.json['author']) != str:
+        abort(400)
+    quote.quote = request.json.get('quote', quote.quote)
+    quote.author = request.json.get('author', quote.author)
+    db.session.commit()
+    return jsonify({'quote': { 'id': quote.id,
+                            'quote': quote.quote,
+                            'author': quote.author,
+                             }})
+
+
+
+@app.route('/motive/api/v1.0/quotes/<int:quote_id>', methods=['DELETE'])
+def delete_quote(quote_id):
+    quote = Quote.query.filter_by(id=quote_id)
+    if not quote:
+        abort(400)
+    db.session.delete(quote)
+    db.session.commit()
+    return jsonify({'result': True})
+
 
 @app.errorhandler(404)
 def not_found(error):
