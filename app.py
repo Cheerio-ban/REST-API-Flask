@@ -2,7 +2,7 @@
 
 from flask import jsonify, abort, make_response, request
 from data import quotes
-from models import Task, Quote, User, db
+from models import Task, Quote, User, Post, db
 from config import app
 # db = SQLAlchemy(app)
 
@@ -14,11 +14,7 @@ db.create_all()
 tasks = Task.query.all()
 quotes = Quote.query.all()
 users = []
-
-
-@app.errorhandler(404)
-def not_found(error):
-    return make_response(jsonify({'error': 'Not found'}), 404)
+posts = []
 
 
 # todos
@@ -192,7 +188,7 @@ def delete_quote(quote_id):
     return jsonify({'result': True})
 
 
-# socials
+# users -> Social appname
 # api format appname/api/version/folder/id
 @app.route("/social/api/v1.0/users", methods=["GET"])
 def users_index():
@@ -323,6 +319,113 @@ def delete_user(user_id):
     if not user:
         abort(400)
     db.session.delete(user)
+    db.session.commit()
+    return jsonify({'result': True})
+
+
+# Posts -> Social appname
+# api format appname/api/version/folder/id
+@app.route("/social/api/v1.0/posts", methods=["GET"])
+def posts_index():
+    # Used this workaround because SQLalchemy class object can't be jsonified.
+    post_list = []
+    for post in posts:
+        list_elem = {'id': post.id,
+                     'title': post.title,
+                     'body': post.body,
+                     'userId': post.userId,
+                     'tags': post.tags,
+                     'reactions': post.reactions
+                     }
+        post_list.append(list_elem)
+    return jsonify({'posts': post_list})
+
+
+@app.route("/social/api/v1.0/posts/<int:post_id>", methods=["GET"])
+def get_post(post_id):
+    """
+    Gets a particular post from the Post table in database.
+    """
+    post = Post.query.filter_by(id=post_id).first()
+    if not post:
+        abort(404)
+    return jsonify({'post': {'id': post.id,
+                             'title': post.title,
+                             'body': post.body,
+                             'userId': post.userId,
+                             'tags': post.tags,
+                             'reactions': post.reactions
+                             }})
+
+
+@app.route("/social/api/v1.0/posts", methods=["POST"])
+def create_post():
+    """ Creates new post in database. """
+    if not request.json or 'title' not in request.json:
+        abort(400)
+    if not request.json or 'body' not in request.json:
+        abort(400)
+    post = Post(title=request.json['title'])
+    post.body = request.json.get('body', '')
+    post.userId = request.json.get('userId', None)
+    post.tags = request.json.get('tags', [])
+    post.reactions = request.json.get('reactions', 0)
+
+    db.session.add(post)
+    db.session.commit()
+    return jsonify({'post': {'id': post.id,
+                             'title': post.title,
+                             'body': post.body,
+                             'userId': post.userId,
+                             'tags': post.tags,
+                             'reactions': post.reactions
+                             }
+                    }), 201
+
+
+@app.route("/social/api/v1.0/posts/<int:post_id>", methods=["PUT"])
+def update_post(post_id):
+    """
+    Updates post with post_id.
+    """
+    if not request.json:
+        abort(400)
+    post = Post.query.filter_by(id=post_id).first()
+    if not post:
+        abort(400)
+    if 'title' in request.json and type(request.json['title']) != str:
+        abort(400)
+    if 'body' in request.json and type(request.json['body']) != str:
+        abort(400)
+    if 'userId' in request.json and type(request.json['userId']) != int:
+        abort(400)
+    if 'tags' in request.json and type(request.json['tags']) != list:
+        abort(400)
+    if 'reactions' in request.json and type(request.json['reactions']) != int:
+        abort(400)
+
+    post.title = request.json.get('title', post.title)
+    post.body = request.json.get('body', post.body)
+    post.userId = request.json.get('userId', post.userId)
+    post.tags = request.json.get('tags', post.tags)
+    post.reactions = request.json.get('reactions', post.reactions)
+    db.session.commit()
+    return jsonify({'task': {'id': post.id,
+                             'title': post.title,
+                             'body': post.body,
+                             'userId': post.userId,
+                             'tags': post.tags,
+                             'reactions': post.reactions
+                             }})
+
+
+@app.route('/social/api/v1.0/posts/<int:post_id>', methods=['DELETE'])
+def delete_post(post_id):
+    """ Deletes post with post_id from the database. """
+    post = Post.query.filter_by(id=post_id)
+    if not post:
+        abort(400)
+    db.session.delete(post)
     db.session.commit()
     return jsonify({'result': True})
 

@@ -41,3 +41,17 @@ class User(db.Model):
 
     def __repr__(self) -> str:
         return "<User {}>".format(self.username)
+    
+class Post(db.Model):
+    """
+    Table for posts
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String, nullable=False)
+    body = db.Column(db.String, nullable=False)
+    userId = db.Column(db.Integer)
+    tags = db.Column(db.ARRAY(db.String))
+    reactions = db.Column(db.Integer)
+
+    def __repr__(self) -> str:
+        return "<Post {}>".format(self.title)
