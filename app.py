@@ -13,8 +13,8 @@ db.create_all()
 # Fetches all data from the database
 tasks = Task.query.all()
 quotes = Quote.query.all()
-users = []
-posts = []
+users = User.query.all()
+posts = Post.query.all()
 
 
 # todos
@@ -210,7 +210,7 @@ def users_index():
                      "university": user.university
                      }
         user_list.append(list_elem)
-    return jsonify({'tasks': user_list})
+    return jsonify({'users': user_list})
 
 
 @app.route("/social/api/v1.0/users/<int:user_id>", methods=["GET"])
@@ -298,7 +298,7 @@ def update_user(user_id):
     user.university = request.json.get('university', user.university)
 
     db.session.commit()
-    return jsonify({'task': {'id': user.id,
+    return jsonify({'user': {'id': user.id,
                              'firstName': user.firstName,
                              'lastName': user.lastName,
                              'maidenName': user.maidenName,
@@ -334,7 +334,6 @@ def posts_index():
                      'title': post.title,
                      'body': post.body,
                      'userId': post.userId,
-                     'tags': post.tags,
                      'reactions': post.reactions
                      }
         post_list.append(list_elem)
@@ -353,7 +352,6 @@ def get_post(post_id):
                              'title': post.title,
                              'body': post.body,
                              'userId': post.userId,
-                             'tags': post.tags,
                              'reactions': post.reactions
                              }})
 
@@ -368,7 +366,7 @@ def create_post():
     post = Post(title=request.json['title'])
     post.body = request.json.get('body', '')
     post.userId = request.json.get('userId', None)
-    post.tags = request.json.get('tags', [])
+    #post.tags = request.json.get('tags', [])
     post.reactions = request.json.get('reactions', 0)
 
     db.session.add(post)
@@ -377,7 +375,6 @@ def create_post():
                              'title': post.title,
                              'body': post.body,
                              'userId': post.userId,
-                             'tags': post.tags,
                              'reactions': post.reactions
                              }
                     }), 201
@@ -399,7 +396,7 @@ def update_post(post_id):
         abort(400)
     if 'userId' in request.json and type(request.json['userId']) != int:
         abort(400)
-    if 'tags' in request.json and type(request.json['tags']) != list:
+    if 'tags' in request.json and type(request.json['tags']) != str:
         abort(400)
     if 'reactions' in request.json and type(request.json['reactions']) != int:
         abort(400)
@@ -407,14 +404,13 @@ def update_post(post_id):
     post.title = request.json.get('title', post.title)
     post.body = request.json.get('body', post.body)
     post.userId = request.json.get('userId', post.userId)
-    post.tags = request.json.get('tags', post.tags)
+    # post.tags = request.json.get('tags', post.tags)
     post.reactions = request.json.get('reactions', post.reactions)
     db.session.commit()
-    return jsonify({'task': {'id': post.id,
+    return jsonify({'post': {'id': post.id,
                              'title': post.title,
                              'body': post.body,
                              'userId': post.userId,
-                             'tags': post.tags,
                              'reactions': post.reactions
                              }})
 
