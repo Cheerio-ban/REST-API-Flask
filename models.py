@@ -50,7 +50,7 @@ class Post(db.Model):
     title = db.Column(db.String, nullable=False)
     body = db.Column(db.String, nullable=False)
     userId = db.Column(db.Integer)
-    tags = db.Column(db.ARRAY(db.String))
+    tags = db.Column(db.String)
     reactions = db.Column(db.Integer)
 
     def __repr__(self) -> str:
